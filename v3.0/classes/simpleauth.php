@@ -52,12 +52,11 @@ class simpleauth {
 	 */
 	public static function instance($config = 'simpleauth')
 	{
-		if ( ! isset(simpleauth::$instance))
-		{
-			simpleauth::$instance = new simpleauth($config);
-		}
+		static $instance;
+		
+		empty($instance) and $instance = new simpleauth($config);
 
-		return simpleauth::$instance;
+		return $instance;
 	}
 	
 	/**
@@ -144,7 +143,6 @@ class simpleauth {
 			return ($user_model->save()) ? TRUE : FALSE;
 		}
 
-          // if user ID was passed, try to load user from database
 		$user_model = new Model_Auth_Users($user);
 
 		if ( ! $user_model->loaded())
@@ -233,16 +231,18 @@ class simpleauth {
 
 		if (is_object($user) AND ($user instanceof simpleuser OR $user instanceof Model_Auth_Users)) 
 		{
-			$user_model = authmodeler::instance('auth_users')->fetch_row(intval($user->{$this->config['primary_key']}));
-			if (!empty($user_model))  
+			//$user_model = authmodeler::instance('auth_users')->fetch_row(intval($user->{$this->config['primary_key']}));
+			//if (!empty($user_model))
+			if ($user->loaded())  
 			{
-				return $user_model;
+				//return $user_model;
+				return $user;
 			} 
 		}
 
 		if (( ! is_object($user)) AND (intval($user) !== 0)) 
 		{	
-			$user_model = authmodeler::Instance('auth_users')->fetch_row(intval($user));
+			$user_model = authmodeler::instance('auth_users')->fetch_row(intval($user));
 			if (!empty($user_model)) 
 			{
 				return $user_model;
@@ -268,7 +268,7 @@ class simpleauth {
 				return FALSE;
 			}
 
-			if ($token_model->user_agent === sha1(Kohana::$user_agent))
+			if ($token_model->user_agent === sha1(Request::$user_agent))
 			{
 				$user = new Model_Auth_Users($token_model->user_id);
 
@@ -315,7 +315,7 @@ class simpleauth {
 	{
 		$password_field = $this->config['password'];
 
-		if (empty($user_data) OR ! is_array($user_data)) 
+		if (empty($user_data) OR ! $user_data instanceof Model_Auth_Users) 
 		{
 			return FALSE;
 		}
@@ -324,18 +324,18 @@ class simpleauth {
 
 		if ($second) 
 		{
-			$user_exist = $user->user_exists($user_data[$this->config['unique']],$user_data[$this->config['unique_second']]);
+			$user_exist = $user->user_exists($user_data->{$this->config['unique']},$user_data->{$this->config['unique_second']});
 		}
 		else 
 		{
-			$user_exist = $user->user_exists($user_data[$this->config['unique']]);
+			$user_exist = $user->user_exists($user_data->{$this->config['unique']});
 		}
 
 		if ( ! $user_exist)
 		{
-			if (isset($user_data['active_to']) AND ! strtotime($user->active_to))
+			if (isset($user_data->active_to) AND ! strtotime($user->active_to))
 			{
-				$user_data['active_to'] = '';
+				$user_data->active_to = '';
 			}
 	
 			// to make sure that $user_data['admin']=true works the same as $user_data['admin']=1 
@@ -344,11 +344,11 @@ class simpleauth {
 			{
 				if (array_key_exists($key, $user_data))
 				{
-					$user_data[$key] = intval($user_data[$key]);
+					$user_data->{$key} = intval($user_data->{$key});
 				}     
 			}
 	
-			$user->set_fields($user_data);
+			$user->set_fields($user_data->as_array());
 			$user->{$password_field} = $this->hash($user->{$password_field});
 	
 			return ($result = $user->save()) ? $result : FALSE;
@@ -431,7 +431,7 @@ class simpleauth {
 	public function login($login = '', $password = '', $remember = FALSE)
 	{
 		$password_field = $this->config['password'];
-
+         
 		if (empty($password) OR ! is_string($password) OR ! is_string($login)) 
 		{
 			return FALSE;
@@ -473,59 +473,7 @@ class simpleauth {
 			}
 
 			$this->complete_login($user);
-
-			return TRUE;
-		}
-
-		// Login failed
-		return FALSE;
-	}
-	
-	/**
-	 * Log user by passing Simple_User object
-	 *
-	 * @param object $user Simple_User object
-	 * @param boolean $remember enable auto-login
-	 * @return boolean
-	 */
-	public function force_login(Simple_User $user, $remember = TRUE)
-	{
-	
-		if (empty($user) OR ! $user instanceof Simple_User)
-			return FALSE;
-	
-		$user = new Auth_Users_Model($user->id);
-		
-		if ( ! $user->loaded()) 
-		{
-			return FALSE;
-		}
-
-
-		if (intval($user->active) === 1)
-		{
-			if (strtotime($user->active_to) !== FALSE)
-			{
-				$now = date('Y-m-d H:i:s');
-				if ($user->active_to<$now) 
-				{
-					return FALSE;
-				}
-			}
-
-			if ($remember === TRUE)
-			{	
-				$token_model = new Model_Auth_User_Tokens();
-				$token_model->delete_user_tokens($user->{$this->config['primary_key']});
-				$token_model->user_id = $user->{$this->config['primary_key']};
-				$token_model->expires =  date('Y-m-d H:i:s', mktime(date('H'), date('i'), date('s')+$this->config['lifetime'], date('m'), date('d'), date('Y')));
-				$token_model->save();
-                    
-				cookie::set($this->config['cookie_key'], $token_model->token, $this->config['lifetime']);
-			}
-
-			$this->complete_login($user);
-
+			
 			return TRUE;
 		}
 

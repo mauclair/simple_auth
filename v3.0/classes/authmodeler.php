@@ -37,8 +37,6 @@ class authmodeler extends Model {
 	// fetch only those fields, if empty select all fields
 	public $select = '*';
 	
-	//db result object type
-	public $result_object = 'stdClass'; //defaults, arrays: MYSQL_ASSOC objects: stdClass
 	
 	/**
 	* Constructor
@@ -81,7 +79,7 @@ class authmodeler extends Model {
 	public static function instance($model, $id = FALSE)
 	{
 		static $instance;
-		$model = empty($model) ? __CLASS__ : ucwords($model).'_Model';
+		$model = empty($model) ? __CLASS__ : 'Model_'.ucfirst($model);
 
 		empty($instance) and $instance = new $model($id);
 				
@@ -144,13 +142,27 @@ class authmodeler extends Model {
 		// Do an update
 		if ($this->loaded())
 		{ 
-				return count(db::update($this->table_name)->set($data_to_save)->where($this->primary_key, '=', $this->data[$this->primary_key])->execute());
+				$result = count(db::update($this->table_name)->set($data_to_save)->where($this->primary_key, '=', $this->data[$this->primary_key])->execute());
+				if ($result)
+				{
+					$this->data_original = $this->data;
+					return $result;	
+				}
+				else
+				{
+					return FALSE;
+				}
 		}
 		else // Do an insert
 		{
 			$id = db::insert($this->table_name, array_keys($data_to_save))->values($data_to_save)->execute();
-			$this->data[$this->primary_key] = $id;
-			$this->data_original[$this->primary_key] = $id;
+			if ($id)
+			{
+				$this->data[$this->primary_key] = $id;
+				$this->data_original = $this->data;//[$this->primary_key] = $id;
+			}
+			else
+				return FALSE;
 			
 			if ($id AND !empty($this->hash_field))
 			{
@@ -202,9 +214,6 @@ class authmodeler extends Model {
 	{
 		(empty($key)) ? $key = $this->primary_key : NULL;
 				
-		// get data
-		//if value is an array, make where statement and load data
-
 		$data = $data = db::select($this->select)->from($this->table_name)->where($key, '=', $value)->execute();
 
 		// try and assign the data
@@ -305,18 +314,6 @@ class authmodeler extends Model {
 	}
 	
 	/**
-	*  Set the DB results object type	
-	*
-	* @param string $object type or returned object
-	* @return object
-	*/
-	public function set_result($object = stdClass) 
-	{
-		$this->result_object = $object;
-		return $this; 
-	}
-	
-	/**
 	*  Checks if given key is a timestamp and should be updated	
 	*
 	* @param string $key key to be checked
@@ -398,7 +395,7 @@ class authmodeler extends Model {
 	public function __wakeup()
 	{
 		// Initialize database
-		$this->db = Database::instance($this->db);
+		$this->db = Database::instance();
 	}
 
 }

@@ -102,7 +102,7 @@ class Model_Auth_User_Tokens extends authmodeler {
 			return FALSE;
 		
 		if ($all)
-			return $this->db->delete($this->table_name,array('user_id'=>$id));
+			return db::delete($this->table_name)->where('user_id', '=',$id)->execute();
 		else
 			return db::delete($this->table_name)->where('user_id', '=',$id)->where('user_agent','=',sha1(Request::user_agent('browser')))->execute();
 	} 
