@@ -17,9 +17,6 @@ class simpleuser {
 	// is loaded
 	protected $loaded = FALSE;
 	
-	// array, 'form field name' => 'database field name'
-	public $aliases = Array(); 
-	
 	/**
 	*  return user data
 	*
@@ -38,8 +35,6 @@ class simpleuser {
 	*/
 	public function __get($key)
 	{    
-		$key = $this->check_alias($key);
-
 		if (array_key_exists($key, $this->data))
 		{
 			return $this->data[$key];
@@ -71,17 +66,6 @@ class simpleuser {
 	{
 			$this->data = array();
 			$this->loaded = FALSE;
-	}
-	
-	/**
-	*  Checks if given key is an alias and if so then points to aliased field name	
-	*
-	* @param string $key key to be checked
-	* @return boolean
-	*/
-	public function check_alias($key)
-	{
-		return array_key_exists($key, $this->aliases) === TRUE ? $this->aliases[$key] : $key;
 	}
 
 }

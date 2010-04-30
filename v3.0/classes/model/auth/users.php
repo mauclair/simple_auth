@@ -39,9 +39,11 @@ class Model_Auth_Users extends authmodeler {
 	{
 		parent::__construct($id);
 		
-		$this->unique = Kohana::config('simpleauth.unique');
-		$this->second = Kohana::config('simple_auth.unique_second');
-		$this->password = Kohana::config('simpleauth.password');
+		$auth_config =  Kohana::config('simpleauth');
+		
+		$this->unique = $auth_config['unique'];
+		$this->second =  $auth_config['unique_second'];
+		$this->password =  $auth_config['password']; 
 	}
 
 	public function get_user($unique, $pass)
@@ -66,7 +68,7 @@ class Model_Auth_Users extends authmodeler {
 	{
 		if (!empty($second))
 		{
-			return (bool) db::select('id')->from($this->table_name)->where($this->unique, '=' , $name)->or_where($this->second, '=', $second)->execute();
+			return count(db::select('id')->from($this->table_name)->where($this->unique, '=' , $name)->or_where($this->second, '=', $second)->execute());
 		}
 		else
 		{

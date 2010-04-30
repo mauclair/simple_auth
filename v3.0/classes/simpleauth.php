@@ -67,11 +67,15 @@ class simpleauth {
 	 */
 	public function hash($str = '')
 	{
-		// on some servers hash() can be disabled :( then password are not encrypted 
+		// on some servers hash() can be disabled :( then password is not encrypted 
 		if (empty($this->config['hash_method']))
-			return $this->config['salt_prefix'].$str.$this->config['salt_suffix']; 
+		{
+			return $this->config['salt_prefix'].$str.$this->config['salt_suffix'];
+		} 
 		else
+		{
 			return hash($this->config['hash_method'], $this->config['salt_prefix'].$str.$this->config['salt_suffix']); 
+		}
 	} 
 	
 	/**
@@ -83,10 +87,9 @@ class simpleauth {
 	 */
 	protected function complete_login($user = NULL)
 	{	
+		if (! is_object($user) OR ! $user instanceof Model_Auth_Users) 
+			return FALSE;
 
-     	if (! is_object($user) OR ! $user instanceof Model_Auth_Users) 
-     		return FALSE;
-     		
 		$user->timestamp = array ('time_stamp');
 		$user->logins += 1;	
 		$user->last_time_stamp = $user->time_stamp;
@@ -107,48 +110,32 @@ class simpleauth {
 	/**
 	 * Assign role to user, by default to current user
 	 * 
-	 * @param array $role array role=>status, where role is admin/active/moderator
+	 * @param array 	$role array role=>status, where role is admin/active/moderator
 	 *				and status is integer 0/1 or boolean	 
-	 * @param object|integer $user user model object or user ID
+	 * @param integer 	user ID
 	 * @return boolean	 	 
 	 */
 	public function set_role($role = array(), $user = 0) 
 	{
 		if ( ! is_array($role)) 
-		{
 			return FALSE;
-		}
 
 		// role must be an array with only valid roles (by default: admin, active, moderator)
 		$role = array_intersect_key($role, $this->config['roles']);
 
 		// if no valid key, quit 
 		if (empty($role)) 
-		{
 			return FALSE;
-		} 
 
 		if (( ! is_object($user)) AND (intval($user) === 0))
 		{
 			$user = $this->get_user();
 		}
 
-		if (is_object($user) AND ($user instanceof Model_Auth_Users OR $user instanceof simpleuser)) 
-		{
-			$user_model = new Model_Auth_Users($user->{$this->config['primary_key']});
-			foreach ($role as $key => $value)
-			{
-				$user_model->{$key} = intval($value);
-			}
-			return ($user_model->save()) ? TRUE : FALSE;
-		}
-
-		$user_model = new Model_Auth_Users($user);
+		$user_model = new Model_Auth_Users($user->id);
 
 		if ( ! $user_model->loaded())
-		{ 
 			return FALSE;
-		}
 
 		foreach ($role as $key => $value)
 		{
@@ -167,9 +154,7 @@ class simpleauth {
 	public function logout($destroy = FALSE)
 	{
 		if ( ! $this->logged_in())
-		{
 			return FALSE;
-		}
 
 		$user = $this->get_user();
 	
@@ -225,28 +210,19 @@ class simpleauth {
 	public function get_user($user = 0)
 	{
 		if (( ! is_object($user)) AND (intval($user) === 0) AND ($this->logged_in())) 
-		{
 			return $this->session->get($this->config['session_key']);
-		} 
 
 		if (is_object($user) AND ($user instanceof simpleuser OR $user instanceof Model_Auth_Users)) 
 		{
-			//$user_model = authmodeler::instance('auth_users')->fetch_row(intval($user->{$this->config['primary_key']}));
-			//if (!empty($user_model))
 			if ($user->loaded())  
-			{
-				//return $user_model;
 				return $user;
-			} 
 		}
 
 		if (( ! is_object($user)) AND (intval($user) !== 0)) 
 		{	
-			$user_model = authmodeler::instance('auth_users')->fetch_row(intval($user));
-			if (!empty($user_model)) 
-			{
+			$user_model = authmodeler::instance('auth_users')->load(intval($user));
+			if ($user_model->loaded())
 				return $user_model;
-			}
 		}
 
 		return FALSE; 
@@ -287,7 +263,7 @@ class simpleauth {
 					}
 				}
 
-				$token_model->expires = date('Y-m-d H:i:s', mktime(date('H'), date('i'), date('s')+$this->config['lifetime'], date('m'), date('d'), date('Y'))); 
+				$token_model->expires = date('Y-m-d H:i:s', mktime(date('H'), date('i'), date('s') + $this->config['lifetime'], date('m'), date('d'), date('Y'))); 
 				$token_model->save();
 
 				cookie::set($this->config['cookie_key'], $token_model->token, strtotime($token_model->expires) - time());
@@ -316,9 +292,7 @@ class simpleauth {
 		$password_field = $this->config['password'];
 
 		if (empty($user_data) OR ! $user_data instanceof Model_Auth_Users) 
-		{
 			return FALSE;
-		}
 
 		$user = new Model_Auth_Users();
 
@@ -371,21 +345,15 @@ class simpleauth {
 			$user_model = new Model_Auth_Users(intval($user->{$this->config['primary_key']})); 
 		
 			if ($user_model->loaded()) 
-			{
 				return ($user_model->delete()) ? TRUE : FALSE;
-			} 
 		}
 
 		if (intval($user) === 0) 
-		{
 			return FALSE;
-		} 
 	    
 		$user_model = new Model_Auth_Users(intval($user));
 		if ( ! $user_model->loaded()) 
-		{ 
 			return FALSE;
-		}
 		
 		return ($user_model->delete()) ? TRUE : FALSE;  
 	}
@@ -402,9 +370,7 @@ class simpleauth {
 			$user_data = $this->get_user();
 			$user_model = new Model_Auth_Users($user_data->{$this->config['primary_key']});
 			if ( ! $user_model->loaded())
-			{
-				return FALSE;
-			}		 
+				return FALSE;		 
 			
 			if (intval($user_model->active) === 1)
 			{
@@ -433,17 +399,13 @@ class simpleauth {
 		$password_field = $this->config['password'];
          
 		if (empty($password) OR ! is_string($password) OR ! is_string($login)) 
-		{
 			return FALSE;
-		} 
 
 		$user = new Model_Auth_Users;
 		$user->get_user($login, $this->hash($password));
 		
 		if ( ! $user->loaded()) 
-		{
 			return FALSE;
-		}
 
 		if (is_string($password))
 		{
@@ -456,9 +418,7 @@ class simpleauth {
 			{
 				$now = date('Y-m-d H:i:s');
 				if ($user->active_to<$now) 
-				{
 					return FALSE;
-				}
 			}
 
 			if ($remember === TRUE)
@@ -468,7 +428,7 @@ class simpleauth {
 				$token_model->user_id = $user->{$this->config['primary_key']};
 				$token_model->expires =  date('Y-m-d H:i:s', mktime(date('H'), date('i'), date('s')+$this->config['lifetime'], date('m'), date('d'), date('Y')));
 				$token_model->save();
-                    
+
 				cookie::set($this->config['cookie_key'], $token_model->token, $this->config['lifetime']);
 			}
 

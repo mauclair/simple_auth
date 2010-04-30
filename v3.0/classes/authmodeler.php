@@ -107,7 +107,7 @@ class authmodeler extends Model {
 	*/
 	public function set_fields($data)
 	{
-		$this->load_columns();
+		//$this->load_columns();
 
 		foreach ($data as $key => $value)
 		{
@@ -127,15 +127,10 @@ class authmodeler extends Model {
 	*/
 	public function save()
 	{
-		//make sure that table columns are loaded
-		//$this->load_columns();
-
 		$data_to_save = array_diff_assoc($this->data, $this->data_original);
 
 		if (empty($data_to_save))
-		{
 			return NULL;
-		}
 
 		$this->check_timestamp(& $data_to_save, $this->loaded());
 
@@ -149,9 +144,7 @@ class authmodeler extends Model {
 					return $result;	
 				}
 				else
-				{
 					return FALSE;
-				}
 		}
 		else // Do an insert
 		{
@@ -184,18 +177,12 @@ class authmodeler extends Model {
 	public function load($value, $key = NULL)
 	{
 		(empty($key)) ? $key = $this->primary_key : NULL;
-
-		//make sure that table columns are loaded
-		//$this->load_columns();
 		
 		$data = db::select($this->select)->from($this->table_name)->where($key, '=', $value)->execute();
 
-		// try and assign the data
 		if (count($data) === 1 AND $data = $data->current())
 		{
-			// set original data
 			$this->data_original = (array) $data;
-			// set current data
 			$this->data = $this->data_original; 
 		}
 	
@@ -216,11 +203,8 @@ class authmodeler extends Model {
 				
 		$data = $data = db::select($this->select)->from($this->table_name)->where($key, '=', $value)->execute();
 
-		// try and assign the data
-		if (count($data) === 1 AND $data = $data->current())
-		{				
+		if (count($data) === 1 AND $data = $data->current())			
 			return $data;
-		}
 
 		return NULL;
 
@@ -236,9 +220,8 @@ class authmodeler extends Model {
 	public function delete()
 	{
 		if (intval($this->data[$this->primary_key]) !== 0) 
-		{
 			return db::delete($this->table_name)->where($this->primary_key, '=', $this->data[$this->primary_key])->execute();
-		}
+
 		return NULL;
 	}
 	
@@ -353,9 +336,8 @@ class authmodeler extends Model {
 	public function __get($key)
 	{
 		if (array_key_exists($key, $this->data))
-		{
 			return $this->data[$key];
-		}
+
 		return NULL;
 	}
 
@@ -369,9 +351,8 @@ class authmodeler extends Model {
 	public function __set($key, $value)
 	{
 		if (array_key_exists($key, $this->data) AND (empty($this->data[$key]) OR $this->data[$key] !== $value))
-		{
 			return ($this->auto_trim) ? $this->data[$key] = trim($value) : $this->data[$key] = $value;
-		}
+
 		return NULL;
 	}
 
