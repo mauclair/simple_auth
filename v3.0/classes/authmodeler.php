@@ -47,7 +47,9 @@ class authmodeler extends Model {
 	public function __construct($id = NULL)
 	{
 		parent::__construct();
-
+          
+		$this->load_columns();
+		
 		if ($id != NULL)
 		{
 			$this->load($id);
@@ -107,8 +109,6 @@ class authmodeler extends Model {
 	*/
 	public function set_fields($data)
 	{
-		//$this->load_columns();
-
 		foreach ($data as $key => $value)
 		{
 			if (array_key_exists($key, $this->data))
@@ -132,7 +132,7 @@ class authmodeler extends Model {
 		if (empty($data_to_save))
 			return NULL;
 
-		$this->check_timestamp(& $data_to_save, $this->loaded());
+		$data_to_save = $this->check_timestamp($data_to_save, $this->loaded());
 
 		// Do an update
 		if ($this->loaded())
@@ -143,8 +143,6 @@ class authmodeler extends Model {
 					$this->data_original = $this->data;
 					return $result;	
 				}
-				else
-					return FALSE;
 		}
 		else // Do an insert
 		{
@@ -152,7 +150,7 @@ class authmodeler extends Model {
 			if ($id)
 			{
 				$this->data[$this->primary_key] = $id;
-				$this->data_original = $this->data;//[$this->primary_key] = $id;
+				$this->data_original = $this->data;
 			}
 			else
 				return FALSE;
@@ -280,10 +278,11 @@ class authmodeler extends Model {
 	public function load_columns() 
 	{
 		if ( ! empty($this->data) AND (empty($this->data_original)) )
-			foreach ($this->data as $key => $value) 
-			{
-				$this->data_original[$key] = '';
-			}
+		{
+			$this->data_original =  $this->data;
+			array_fill_keys($this->data, '');
+			array_fill_keys($this->data_original, '');
+		}
 	}
 	
 	/**
