@@ -244,7 +244,7 @@ class simpleauth {
 				return FALSE;
 			}
 
-			if ($token_model->user_agent === sha1(Request::$user_agent))
+			if ($token_model->user_agent === sha1(Request::user_agent('browser')))
 			{
 				$user = new Model_Auth_Users($token_model->user_id);
 
