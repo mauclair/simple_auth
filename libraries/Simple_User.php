@@ -2,20 +2,23 @@
 /**
 * Simple_User - simple class to strore user data in session
 *
-* @package		simpleauth for Kohana 3.x
+* @package		Simple_Auth
 * @author			thejw23
-* @copyright		(c) 2010 thejw23
+* @copyright		(c) 2009 thejw23
 * @license		http://www.opensource.org/licenses/isc-license.txt
-* @version		1.0 BETA 
-* @last change		initial release
+* @version		1.0
+* @last change		
 */
-class simpleuser {
+class Simple_User_Core {
 
 	// user data
 	protected $data = Array();
 	
 	// is loaded
 	protected $loaded = FALSE;
+	
+	// array, 'form field name' => 'database field name'
+	public $aliases = Array(); 
 	
 	/**
 	*  return user data
@@ -35,6 +38,8 @@ class simpleuser {
 	*/
 	public function __get($key)
 	{    
+		$key = $this->check_alias($key);
+
 		if (array_key_exists($key, $this->data))
 		{
 			return $this->data[$key];
@@ -66,6 +71,17 @@ class simpleuser {
 	{
 			$this->data = array();
 			$this->loaded = FALSE;
+	}
+	
+	/**
+	*  Checks if given key is an alias and if so then points to aliased field name	
+	*
+	* @param string $key key to be checked
+	* @return boolean
+	*/
+	public function check_alias($key)
+	{
+		return array_key_exists($key, $this->aliases) === TRUE ? $this->aliases[$key] : $key;
 	}
 
 }

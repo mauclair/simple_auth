@@ -2,15 +2,14 @@
 /**
 * User Token Model
 *
-* @package		simpleauth for Kohana 3.x
+* @package		Simple_Auth
 * @author			thejw23
-* @copyright		(c) 2010 thejw23
+* @copyright		(c) 2009 thejw23
 * @license		http://www.opensource.org/licenses/isc-license.txt
-* @version		1.0 BETA 
-* @last change		initial release
-* based on KohanaPHP Auth and Simple_Modeler
+* @version		1.0
+* based on KohanaPHP Auth and Auto_Modeler
 */
-class Model_Auth_User_Tokens extends authmodeler {
+class Auth_User_Tokens_Model extends Auth_Modeler {
 
 	protected $table_name = 'auth_user_tokens';
 
@@ -23,7 +22,8 @@ class Model_Auth_User_Tokens extends authmodeler {
 						'user_agent' => '',
 						'time_stamp' => '',
 						'token' => '');
-						
+
+	// Current timestamp
 	protected $now;
 
 	/**
@@ -34,26 +34,30 @@ class Model_Auth_User_Tokens extends authmodeler {
 	*/
 	public function __construct($id = FALSE)
 	{
+				// parent::__construct($id);
 				parent::__construct();
-
+		
+				// Set the now, we use this a lot
 				$this->now = date('Y-m-d H:i:s');
 		
 				if ($id != NULL AND is_string($id))
 				{
-					$this->load($id,'token');
-
+					// try and get a row with this token
+					$this->load($id, 'token');
+					
 					if ($this->loaded())
 					{
+						// if token expired delete all expired, delete cookie and clear loaded data
 						if ($this->data['expires'] < $this->now) 
 						{
 							$this->delete_expired();
 							$this->clear_data();
-							cookie::delete(Kohana::config('simpleauth.cookie_key'));
+							cookie::delete(Kohana::config('simple_auth.cookie_key'));
 						}
 					} 
-					else
+					else //invalid token, delete cookie 
 					{
-						cookie::delete(Kohana::config('simpleauth.cookie_key'));
+						cookie::delete(Kohana::config('simple_auth.cookie_key'));
 					}
 				}
 	}
@@ -68,10 +72,12 @@ class Model_Auth_User_Tokens extends authmodeler {
 	{
 		if ($this->data[$this->primary_key] == 0)
 		{
+			// Set the created time, token, and hash of the user agent
 			$this->data['created'] = $this->now;
-			$this->data['user_agent'] = sha1(Request::user_agent('browser'));
+			$this->data['user_agent'] = sha1(Kohana::$user_agent);
 		}
 
+		// Create a new token each time the token is saved
 		$this->data['token'] = $this->create_token();
 
 		return parent::save();
@@ -84,7 +90,7 @@ class Model_Auth_User_Tokens extends authmodeler {
 	 */
 	public function delete_expired()
 	{
-		return db::delete($this->table_name)->where('expires', '<=', $this->now)->execute();
+		return $this->db->delete($this->table_name,array('expires <' => $this->now));
 	}
 	
 	
@@ -102,9 +108,9 @@ class Model_Auth_User_Tokens extends authmodeler {
 			return FALSE;
 		
 		if ($all)
-			return db::delete($this->table_name)->where('user_id', '=',$id)->execute();
+			return $this->db->delete($this->table_name,array('user_id'=>$id));
 		else
-			return db::delete($this->table_name)->where('user_id', '=',$id)->where('user_agent','=',sha1(Request::user_agent('browser')))->execute();
+			return $this->db->delete($this->table_name,array('user_id'=>$id,'user_agent'=>sha1(Kohana::$user_agent)));
 	} 
 
 	/**
@@ -122,7 +128,7 @@ class Model_Auth_User_Tokens extends authmodeler {
 			$token = text::random('alnum', 32);
 
 			// Make sure the token does not already exist
-			if (count(db::select('id')->from($this->table_name)->where('token','=',$token)->execute()) === 0)
+			if (count($this->db->select('id')->from($this->table_name)->where('token', $token)->get($this->table)) === 0)
 			{
 				// A unique token has been found
 				return $token;
