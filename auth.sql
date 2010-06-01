@@ -3,9 +3,8 @@ CREATE TABLE `auth_user_tokens` (
   `user_id` int(11) unsigned NOT NULL,
   `user_agent` varchar(40) NOT NULL,
   `token` varchar(32) NOT NULL,
-  `created` datetime DEFAULT NULL,
+  `time_stamp_created` datetime DEFAULT NULL,
   `expires` datetime DEFAULT NULL,
-  `time_stamp` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 

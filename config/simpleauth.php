@@ -9,7 +9,7 @@ return array
  * @see http://php.net/hash
  * @see http://php.net/hash_algos
  */
-'hash_method' => 'md5',
+'hash_method' => 'sha1',
 
 /**
  * Defines the secret string added to password (as prefix) before hashing

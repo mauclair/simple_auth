@@ -209,16 +209,10 @@ class simpleauth {
 	 */
 	public function get_user($user = 0)
 	{
-		if (( ! is_object($user)) AND (intval($user) === 0) AND ($this->logged_in())) 
+		if ((intval($user) === 0) AND $this->logged_in()) 
 			return $this->session->get($this->config['session_key']);
 
-		if (is_object($user) AND ($user instanceof simpleuser OR $user instanceof Model_Auth_Users)) 
-		{
-			if ($user->loaded())  
-				return $user;
-		}
-
-		if (( ! is_object($user)) AND (intval($user) !== 0)) 
+		if (intval($user) !== 0) 
 		{	
 			$user_model = authmodeler::instance('auth_users')->load(intval($user));
 			if ($user_model->loaded())

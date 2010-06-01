@@ -19,9 +19,8 @@ class Model_Auth_User_Tokens extends authmodeler {
 	protected $data = array('id' => '',
 						'user_id' => '',
 						'expires' => '',
-						'created' => '',
 						'user_agent' => '',
-						'time_stamp' => '',
+						'time_stamp_created' => '',
 						'token' => '');
 						
 	protected $now;
@@ -68,7 +67,7 @@ class Model_Auth_User_Tokens extends authmodeler {
 	{
 		if ($this->data[$this->primary_key] == 0)
 		{
-			$this->data['created'] = $this->now;
+			//$this->data['time_stamp_created'] = $this->now;
 			$this->data['user_agent'] = sha1(Request::user_agent('browser'));
 		}
 

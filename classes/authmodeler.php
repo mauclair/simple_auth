@@ -308,7 +308,7 @@ class authmodeler extends Model {
 		{
 			if ( ! empty($this->timestamp) AND is_array($this->timestamp))
 				foreach ($this->timestamp as $field)
-					if (array_key_exists($field, $this->data_original))
+					if (array_key_exists($field, $this->data_original) AND empty($data[$field]))
 					{
 						$data[$field] = date('Y-m-d H:i:s');
 					}
@@ -317,7 +317,7 @@ class authmodeler extends Model {
 		{
 			if ( ! empty($this->timestamp_created) AND is_array($this->timestamp_created))
 				foreach ($this->timestamp_created as $field)
-					if (array_key_exists($field, $this->data_original))
+					if (array_key_exists($field, $this->data_original) AND empty($data[$field]))
 					{
 						$data[$field] = date('Y-m-d H:i:s');
 					}
