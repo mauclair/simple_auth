@@ -6,7 +6,7 @@
 * @author				thejw23
 * @copyright			(c) 2010 thejw23
 * @license			http://www.opensource.org/licenses/isc-license.txt
-* @version			1.0 BETA 
+* @version			2.0
 * @last change			initial release
 * 
 * based on KohanaPHP Auth and Simple_Modeler
@@ -127,12 +127,14 @@ class simpleauth {
 		if (empty($role)) 
 			return FALSE;
 
-		if (( ! is_object($user)) AND (intval($user) === 0))
+		
+		$user_model = $this->get_user($user);
+		/*elseif (( ! is_object($user)) AND (intval($user) === 0))
 		{
 			$user = $this->get_user();
 		}
 
-		$user_model = new Model_Auth_Users($user->id);
+		$user_model = new Model_Auth_Users($user->id);*/
 
 		if ( ! $user_model->loaded())
 			return FALSE;
@@ -209,10 +211,16 @@ class simpleauth {
 	 */
 	public function get_user($user = 0)
 	{
-		if ((intval($user) === 0) AND $this->logged_in()) 
+		if (( ! is_object($user)) AND (intval($user) === 0) AND ($this->logged_in())) 
 			return $this->session->get($this->config['session_key']);
 
-		if (intval($user) !== 0) 
+		if (is_object($user) AND ($user instanceof simpleuser OR $user instanceof Model_Auth_Users)) 
+		{
+			if ($user->loaded())  
+				return $user;
+		}
+
+		if (( ! is_object($user)) AND (intval($user) !== 0)) 
 		{	
 			$user_model = authmodeler::instance('auth_users')->load(intval($user));
 			if ($user_model->loaded())

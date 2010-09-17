@@ -6,7 +6,7 @@
 * @author			thejw23
 * @copyright		(c) 2010 thejw23
 * @license		http://www.opensource.org/licenses/isc-license.txt
-* @version		1.0 BETA 
+* @version		2.0
 * @last change		initial release
 * based on KohanaPHP Auth and Simple_Modeler
 */
@@ -19,8 +19,9 @@ class Model_Auth_User_Tokens extends authmodeler {
 	protected $data = array('id' => '',
 						'user_id' => '',
 						'expires' => '',
+						'created' => '',
 						'user_agent' => '',
-						'time_stamp_created' => '',
+						'time_stamp' => '',
 						'token' => '');
 						
 	protected $now;
@@ -67,7 +68,7 @@ class Model_Auth_User_Tokens extends authmodeler {
 	{
 		if ($this->data[$this->primary_key] == 0)
 		{
-			//$this->data['time_stamp_created'] = $this->now;
+			$this->data['created'] = $this->now;
 			$this->data['user_agent'] = sha1(Request::user_agent('browser'));
 		}
 

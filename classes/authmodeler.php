@@ -6,7 +6,7 @@
 * @author			thejw23
 * @copyright		(c) 2010 thejw23
 * @license		http://www.opensource.org/licenses/isc-license.txt
-* @version		1.0 BETA 
+* @version		2.0 RC1
 * @last change		initial release
 *  
 * modified version of Simple_Modeler, removed all methods not needed for Auth  
@@ -20,9 +20,6 @@ class authmodeler extends Model {
 	// primary key for the table
 	protected $primary_key = 'id';
 	 		
-	// if true all fields will be trimmed before save
-	protected $auto_trim = FALSE;
-	
 	// store single record database fields and values
 	protected $data = Array();
 	protected $data_original = Array();
@@ -92,16 +89,6 @@ class authmodeler extends Model {
 	}
 
 	/**
-	* Shows table name of the loaded model
-	*	
-	* @return string
-	*/
-	public function get_table_name() 
-	{
-			return $this->table_name;
-	}
-	
-	/**
 	*  Allows for setting data fields in bulk	
 	*
 	* @param array $data data passed to $data
@@ -113,7 +100,7 @@ class authmodeler extends Model {
 		{
 			if (array_key_exists($key, $this->data))
 			{
-				($this->auto_trim) ? $this->data[$key] = trim($value) : $this->data[$key] = $value;
+				$this->data[$key] = $value;
 			}
 		}
 		
@@ -187,27 +174,6 @@ class authmodeler extends Model {
 		return $this;
 
 	}
-	
-	/**
-	*  Returns single record without using $data		
-	*
-	* @param array|integer $value column value
-	* @param string $key column name  	
-	* @return mixed
-	*/
-	public function fetch_row($value, $key = NULL) 
-	{
-		(empty($key)) ? $key = $this->primary_key : NULL;
-				
-		$data = $data = db::select($this->select)->from($this->table_name)->where($key, '=', $value)->execute();
-
-		if (count($data) === 1 AND $data = $data->current())			
-			return $data;
-
-		return NULL;
-
-	}
-	
 	
 	/**
 	* Deletes from db current record or condition based records 	
@@ -308,7 +274,7 @@ class authmodeler extends Model {
 		{
 			if ( ! empty($this->timestamp) AND is_array($this->timestamp))
 				foreach ($this->timestamp as $field)
-					if (array_key_exists($field, $this->data_original) AND empty($data[$field]))
+					if (array_key_exists($field, $this->data_original))
 					{
 						$data[$field] = date('Y-m-d H:i:s');
 					}
@@ -317,7 +283,7 @@ class authmodeler extends Model {
 		{
 			if ( ! empty($this->timestamp_created) AND is_array($this->timestamp_created))
 				foreach ($this->timestamp_created as $field)
-					if (array_key_exists($field, $this->data_original) AND empty($data[$field]))
+					if (array_key_exists($field, $this->data_original))
 					{
 						$data[$field] = date('Y-m-d H:i:s');
 					}
@@ -350,7 +316,7 @@ class authmodeler extends Model {
 	public function __set($key, $value)
 	{
 		if (array_key_exists($key, $this->data) AND (empty($this->data[$key]) OR $this->data[$key] !== $value))
-			return ($this->auto_trim) ? $this->data[$key] = trim($value) : $this->data[$key] = $value;
+			return $this->data[$key] = $value;
 
 		return NULL;
 	}
@@ -376,6 +342,11 @@ class authmodeler extends Model {
 	{
 		// Initialize database
 		$this->db = Database::instance();
+	}
+	
+	public function __isset($key)
+	{
+		return isset($this->data[$key]);
 	}
 
 }
