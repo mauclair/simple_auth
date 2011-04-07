@@ -1,1 +1,1 @@
-SimpleAuth module for KohanaPHP 3.x framework
+SimpleAuth module for KohanaPHP 3.1 framework
