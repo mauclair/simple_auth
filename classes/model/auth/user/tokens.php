@@ -1,15 +1,18 @@
 <?php defined('SYSPATH') or die('No direct script access.');
+
 /**
 * User Token Model
 *
-* @package		simpleauth for Kohana 3.x
+* @package		SimpleAuth
 * @author			thejw23
 * @copyright		(c) 2010 thejw23
 * @license		http://www.opensource.org/licenses/isc-license.txt
 * @version		2.0
-* @last change		initial release
+* @last change
+* 
 * based on KohanaPHP Auth and Simple_Modeler
 */
+
 class Model_Auth_User_Tokens extends authmodeler {
 
 	protected $table_name = 'auth_user_tokens';
@@ -19,7 +22,7 @@ class Model_Auth_User_Tokens extends authmodeler {
 	protected $data = array('id' => '',
 						'user_id' => '',
 						'expires' => '',
-						'created' => '',
+						'time_stamp_created' => '',
 						'user_agent' => '',
 						'time_stamp' => '',
 						'token' => '');
@@ -68,7 +71,7 @@ class Model_Auth_User_Tokens extends authmodeler {
 	{
 		if ($this->data[$this->primary_key] == 0)
 		{
-			$this->data['created'] = $this->now;
+			//$this->data['created'] = $this->now;
 			$this->data['user_agent'] = sha1(Request::user_agent('browser'));
 		}
 

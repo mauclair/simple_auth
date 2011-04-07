@@ -1,15 +1,18 @@
 <?php defined('SYSPATH') or die('No direct script access.');
+
 /**
 * User Model
 *
-* @package		simpleauth for Kohana 3.x
+* @package		SimpleAuth
 * @author			thejw23
 * @copyright		(c) 2010 thejw23
 * @license		http://www.opensource.org/licenses/isc-license.txt
 * @version		2.0
-* @last change		initial release
+* @last change	
+* 
 * based on KohanaPHP Auth and Simple_Modeler
 */
+
 class Model_Auth_Users extends authmodeler {
 
 	protected $table_name = 'auth_users';
